@@ -1,0 +1,8 @@
+{
+  "file": "internal/compaction/evalrun/testdata/pruning-search-final.json",
+  "sha256": "25bfab693e837286753099789b6568c652c9affa812f64541d405d35b8eabd0b",
+  "positive": 6,
+  "negative": 6,
+  "queried": false,
+  "purpose": "second untouched validation after first validation became development feedback"
+}

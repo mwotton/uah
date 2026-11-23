@@ -9,6 +9,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/viktordanov/uah/internal/compaction"
 	"github.com/viktordanov/uah/internal/home"
 	"github.com/viktordanov/uah/internal/hooks"
 	"github.com/viktordanov/uah/internal/mcp"
@@ -17,10 +18,11 @@ import (
 
 // Config holds defaults below flags, the environment, and a resumed session.
 type Config struct {
-	Provider string `toml:"provider"`
-	Model    string `toml:"model"`
-	Effort   string `toml:"effort"`
-	MaxDisk  string `toml:"max_disk"`
+	SemanticPruning *compaction.PruneSettings `toml:"semantic_pruning"`
+	Provider        string                    `toml:"provider"`
+	Model           string                    `toml:"model"`
+	Effort          string                    `toml:"effort"`
+	MaxDisk         string                    `toml:"max_disk"`
 	// BlockStateInWorkspace refuses a run whose workspace holds the state
 	// directory, such as one in the home directory with ~/.uah under it
 	// (false by default: the state directory's ignore files keep searches

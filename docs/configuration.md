@@ -937,3 +937,40 @@ url = "https://docs.internal.example.com/mcp"
 This repository's own [.uah/config.toml](../.uah/config.toml) is a working project file.
 
 <sub>[↑ Back to top](#configuration-reference)</sub>
+
+Experimental semantic pruning uses a `[semantic_pruning]` table, replaced as a
+whole by later configuration layers. It is disabled unless
+`semantic_pruning.enabled` is true. `semantic_pruning.shadow` records decisions
+without changing requests. `semantic_pruning.endpoint` is the full loopback HTTP
+System One URL; `semantic_pruning.model` defaults to `elephant-1`.
+`semantic_pruning.api_key_env` names an optional environment variable containing
+its bearer token. `semantic_pruning.timeout_ms` defaults to 1500 per request.
+`semantic_pruning.confidence` defaults to 0.98 (both reported confidence and
+selected probability must pass). `semantic_pruning.max_context_tokens` defaults
+to 12000, with a maximum of 14000, leaving schema room in Elephant's 16k window.
+`semantic_pruning.min_saved_tokens` defaults to 512;
+`semantic_pruning.min_calls` defaults to 4 between physical passes;
+`semantic_pruning.min_savings_ratio` defaults to 0.25 saved tokens per estimated
+uncached suffix token. These are experimental gates, not measured latency optima.
+See `docs/design/semantic-pruning.md` for limitations and the benchmark.
+`semantic_pruning.reuse_requests` defaults to 4 future requests over which to
+amortize a rewrite. `semantic_pruning.estimated_prefill_tps` defaults to 1000
+estimated tokens/s. The extra cost gate requires saved tokens times reuse
+requests to exceed the rebuilt suffix plus classification milliseconds converted
+to tokens at this rate. These inputs must be calibrated on the actual Strata
+configuration; Qwen's decode rate is not a prefill rate.
+`semantic_pruning.decision_schema` selects `lifetime-v1` (the original four labels,
+default) or `binary-v1` (replace versus retain, with explicit evidence criteria).
+The latter prompt is in `internal/compaction/prompts/prune_binary.md`.
+`semantic_pruning.decision_schema` also accepts `necessity-v1`, the prompt-search
+candidate using native `noul` P(still needed). Its inverse becomes P(prune), with
+binary-choice-equivalent confidence derived as `abs(2*p - 1)`. The original
+probability and derived-confidence marker are persisted. Default thresholds are
+unchanged; the prompt-search experiment separately validates 0.6 confidence
+(effective P(prune) at least 0.8). Use shadow mode for experimental thresholds.
+`necessity-guarded-v1` adds a second native boolean question asking whether any
+needed fact is unique to the original result. P(still needed) >= 0.5 in that
+question vetoes pruning. Both questions share one inference request. Primary
+and guard probabilities are persisted separately; they are not multiplied into
+a claimed combined probability. The earlier 0.6 experiment failed retention and
+is not recommended. The follow-up evaluated 0.9 and the unchanged default 0.98.

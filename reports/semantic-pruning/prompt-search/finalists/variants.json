@@ -1,0 +1,36 @@
+[
+  {
+    "name": "baseline",
+    "file": "baseline.md",
+    "criteria": {
+      "prune": "The described replacement loses no needed information; later evidence establishes redundancy or resolution.",
+      "retain": "The result is still needed, has unique evidence, or safety of replacement is uncertain."
+    },
+    "prune_label": "prune"
+  },
+  {
+    "name": "counterfactual",
+    "file": "counterfactual.md",
+    "criteria": {
+      "prune": "The described replacement loses no needed information; later evidence establishes redundancy or resolution.",
+      "retain": "The result is still needed, has unique evidence, or safety of replacement is uncertain."
+    },
+    "prune_label": "prune"
+  },
+  {
+    "name": "retain-question",
+    "file": "retain-question.md",
+    "criteria": {
+      "yes": "The separate original body is still needed or its safe replacement is not established.",
+      "no": "The separate original is redundant: later evidence retains what is needed, so this body can be shortened."
+    },
+    "prune_label": "no"
+  },
+  {
+    "name": "necessity-noul",
+    "file": "necessity-noul.md",
+    "question_type": "noul",
+    "criteria": {},
+    "prune_label": "false"
+  }
+]

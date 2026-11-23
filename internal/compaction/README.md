@@ -185,3 +185,7 @@ A failed compaction never loses the request: it goes out uncompacted, and the en
 - **Another rewrite.** `Record` and `Apply` are pure functions of the builder's items. A different rewrite keeps the same contract: a record covers a prefix of the history, and its shape guards it.
 - **Hooks.** The engine's `BeforeCompact` callback runs as each compaction starts; the `PreCompact` hook attaches there.
 <!-- /memoria:section -->
+
+Experimental eager semantic pruning is implemented in `prune.go` and
+`elephant.go`, after the ordinary compactor's rewrite. It is off by default;
+see [configuration and experiment](../../docs/design/semantic-pruning.md).

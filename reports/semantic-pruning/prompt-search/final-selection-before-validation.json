@@ -1,0 +1,17 @@
+{
+  "primary_policy": "necessity-noul confidence>=.9 and Pprune>=.9, plus missing-fact Pprune>.5 veto",
+  "effective_primary_pprune": 0.95,
+  "state_format": "native",
+  "default_confidence_unchanged": 0.98,
+  "selection_data": "augmented development only",
+  "development_primary_approvals": 4,
+  "development_guarded_approvals": 3,
+  "development_unsafe_approvals": 0,
+  "final_validation_queried": false,
+  "final_fixture_sha256": "25bfab693e837286753099789b6568c652c9affa812f64541d405d35b8eabd0b",
+  "prompt_sha256": {
+    "baseline": "479bda1aaade489025d032bc3a23f7c59e9a91c89cb213ad726ed4f06a15048c",
+    "necessity-noul": "213d8fa315955847362cde68982290cf761269e34942536dcc3aeae16a47e1f3",
+    "missing-fact": "681360e39db71b9ffd3f73acf4b68e90b7fa8358140c906366e8125dd9d32137"
+  }
+}

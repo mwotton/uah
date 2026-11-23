@@ -1,0 +1,72 @@
+{
+  "confirm-development": {
+    "requests": 75,
+    "errors": 0,
+    "tokens": 202825,
+    "cost": 0.007098875,
+    "max_input_tokens": 2995
+  },
+  "screen-2": {
+    "requests": 15,
+    "errors": 0,
+    "tokens": 56075,
+    "cost": 0.001962625,
+    "max_input_tokens": 4029
+  },
+  "standalone-development": {
+    "requests": 75,
+    "errors": 0,
+    "tokens": 143050,
+    "cost": 0.00500675,
+    "max_input_tokens": 2198
+  },
+  "screen-5": {
+    "requests": 27,
+    "errors": 0,
+    "tokens": 85734,
+    "cost": 0.00300069,
+    "max_input_tokens": 16191
+  },
+  "screen-4": {
+    "requests": 15,
+    "errors": 0,
+    "tokens": 46520,
+    "cost": 0.0016282,
+    "max_input_tokens": 3392
+  },
+  "screen-1": {
+    "requests": 15,
+    "errors": 0,
+    "tokens": 51020,
+    "cost": 0.0017856999999999999,
+    "max_input_tokens": 3692
+  },
+  "validation": {
+    "requests": 60,
+    "errors": 0,
+    "tokens": 242375,
+    "cost": 0.008483125000000001,
+    "max_input_tokens": 16055
+  },
+  "screen-3-native": {
+    "requests": 15,
+    "errors": 0,
+    "tokens": 47705,
+    "cost": 0.001669675,
+    "max_input_tokens": 3471
+  },
+  "final-validation": {
+    "requests": 60,
+    "errors": 0,
+    "tokens": 266650,
+    "cost": 0.00933275,
+    "max_input_tokens": 12971
+  },
+  "screen-3-text": {
+    "requests": 15,
+    "errors": 0,
+    "tokens": 44051,
+    "cost": 0.001541785,
+    "max_input_tokens": 3216
+  }
+}

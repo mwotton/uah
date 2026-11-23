@@ -228,6 +228,9 @@ func mergeCompaction(base *Config, over Config) {
 	if over.CompactUserMessageMaxTokens != 0 {
 		base.CompactUserMessageMaxTokens = over.CompactUserMessageMaxTokens
 	}
+	if over.SemanticPruning != nil {
+		base.SemanticPruning = over.SemanticPruning
+	}
 	if over.CompactElideAfterCalls != nil {
 		base.CompactElideAfterCalls = over.CompactElideAfterCalls
 	}

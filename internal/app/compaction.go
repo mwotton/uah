@@ -25,6 +25,12 @@ func pickCompaction(cfg config.Config, s *session.Settings) (compaction.Settings
 		Model: cfg.CompactModel, Effort: llm.ReasoningEffort(cfg.CompactEffort),
 		Prompt: strings.TrimSpace(cfg.CompactPrompt), UserMessageMaxTokens: cfg.CompactUserMessageMaxTokens,
 	}
+	if cfg.SemanticPruning != nil {
+		c.Semantic = cfg.SemanticPruning.Defaults()
+		if err := c.Semantic.Validate(); err != nil {
+			return c, "", usage(err)
+		}
+	}
 	if cfg.AutoCompactPercent != nil {
 		c.Percent = *cfg.AutoCompactPercent
 	}

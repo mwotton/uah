@@ -56,6 +56,7 @@ type compactor struct {
 	// settings are the automatic limit, the summary model and prompt, and
 	// the cap on kept user messages.
 	settings compaction.Settings
+	pruner   *compaction.Pruner
 
 	mu     sync.Mutex
 	record *compaction.Record
@@ -144,6 +145,15 @@ func (c *compactor) Respond(ctx context.Context, req llm.Request, opts llm.Reque
 		}
 	}
 	ctx, req.Input = c.applyPinned(ctx, req.Input)
+	if c.pruner != nil {
+		c.mu.Lock()
+		var pass compaction.PrunePass
+		req.Input, pass = c.pruner.Rewrite(ctx, req.Input)
+		c.mu.Unlock()
+		if c.logger != nil {
+			c.logger.InfoContext(ctx, "semantic pruning", "proposed_saved", pass.Saved, "shadow", c.settings.Semantic.Shadow, "suffix", pass.Suffix, "classification_ms", pass.LatencyMS, "error", pass.Error)
+		}
+	}
 	if err := c.overflow(req.Input); err != nil {
 		return llm.Response{}, err
 	}

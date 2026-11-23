@@ -1,0 +1,25 @@
+[
+  {
+    "name": "baseline",
+    "file": "baseline.md",
+    "criteria": {
+      "prune": "The described replacement loses no needed information; later evidence establishes redundancy or resolution.",
+      "retain": "The result is still needed, has unique evidence, or safety of replacement is uncertain."
+    },
+    "prune_label": "prune"
+  },
+  {
+    "name": "necessity-noul",
+    "file": "necessity-noul.md",
+    "question_type": "noul",
+    "criteria": {},
+    "prune_label": "false"
+  },
+  {
+    "name": "missing-fact",
+    "file": "missing-fact.md",
+    "question_type": "noul",
+    "criteria": {},
+    "prune_label": "false"
+  }
+]

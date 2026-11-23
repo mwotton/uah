@@ -11,6 +11,7 @@ import (
 // session's model and effort, Codex's prompt, and the 20,000-token cap on
 // kept user messages.
 type Settings struct {
+	Semantic PruneSettings
 	// Percent is auto_compact_percent: automatic compaction starts when the
 	// context in use reaches this share of the window (0: never).
 	Percent int

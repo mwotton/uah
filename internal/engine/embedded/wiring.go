@@ -310,8 +310,13 @@ func (w *wiring) compactor(ctx context.Context, s runStore, sw *switcher, first 
 		return cfg.BeforeCompact(ctx, string(s.id), t)
 	}
 
+	var pruner *compaction.Pruner
+	if cfg.Compaction.Semantic.Enabled {
+		pruner = &compaction.Pruner{Settings: cfg.Compaction.Semantic, Classifier: compaction.Elephant{Settings: cfg.Compaction.Semantic}, Journal: log.Path() + ".pruning.jsonl"}
+	}
 	return &compactor{
-		ctx: ctx, next: sw, log: log, emit: emit, logger: cfg.Logger, before: before, remote: w.remoteCompaction(), window: cfg.ContextWindow, windows: w.e.models.Window, settings: cfg.Compaction,
+		pruner: pruner,
+		ctx:    ctx, next: sw, log: log, emit: emit, logger: cfg.Logger, before: before, remote: w.remoteCompaction(), window: cfg.ContextWindow, windows: w.e.models.Window, settings: cfg.Compaction,
 		record: rec, older: records, cuts: cuts, pending: first, focus: focus, used: used,
 	}, nil
 }

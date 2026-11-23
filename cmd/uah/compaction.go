@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v3"
 	"github.com/viktordanov/uah-core/harness/llm"
 
+	"github.com/viktordanov/uah/internal/compaction"
 	"github.com/viktordanov/uah/internal/compaction/eval"
 	"github.com/viktordanov/uah/internal/compaction/evalrun"
 	"github.com/viktordanov/uah/internal/home"
@@ -32,6 +33,18 @@ func compactionCommand() *cli.Command {
 				"compaction logs, the cache, or a stub; --summary-model writes the missing ones with a real model and\n" +
 				"caches them. Prints tables of numbers only, never session content.",
 			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "pruning-search-state", Value: "native", Usage: "prompt-search evidence presentation: native or text"},
+				&cli.StringFlag{Name: "pruning-prompt-dir", Usage: "run a prompt search using variants.json in this directory"},
+				&cli.StringFlag{Name: "pruning-search-set", Value: "development", Usage: "prompt-search cases: development, augmented, validation, or final-validation"},
+				&cli.IntFlag{Name: "pruning-search-repeats", Value: 1, Usage: "prompt-search repetitions (1 to 10)"},
+				&cli.Float64Flag{Name: "pruning-confidence", Value: .98, Usage: "experimental confidence and chosen-probability threshold"},
+				&cli.StringFlag{Name: "pruning-schema", Value: "lifetime-v1", Usage: "decision schema: lifetime-v1, binary-v1, necessity-v1, or necessity-guarded-v1"},
+				&cli.BoolFlag{Name: "pruning-heldout", Usage: "use held-out retention cases with --pruning-experiment"},
+				&cli.StringFlag{Name: "openrouter-decision-model", Usage: "explicitly evaluate a remote decision model (e.g. baseten/elephant-1); requires OPENROUTER_API_KEY"},
+				&cli.StringFlag{Name: "pruning-experiment-set", Usage: "policy experiment cases: synthetic or final-validation"},
+				&cli.BoolFlag{Name: "pruning-experiment", Usage: "run five offline synthetic pruning trials (CSV)"},
+				&cli.StringFlag{Name: "elephant-endpoint", Usage: "local System One URL; enables Elephant comparison"},
+				&cli.StringFlag{Name: "elephant-key-env", Usage: "environment variable holding the local service token"},
 				&cli.StringFlag{Name: "cache", Usage: "the summary cache directory (default: <uah home>/cache/compaction-eval)"},
 				&cli.Int64Flag{Name: "window", Usage: "the context window in tokens", Value: 272_000},
 				&cli.StringFlag{Name: "summary-model", Usage: "write missing summaries with this model (real model calls)"},
@@ -48,6 +61,37 @@ func compactionCommand() *cli.Command {
 }
 
 func compactionEvalAction(ctx context.Context, cmd *cli.Command) error {
+	prune := compaction.PruneSettings{DecisionSchema: cmd.String("pruning-schema"), Confidence: cmd.Float64("pruning-confidence"), Enabled: true, Endpoint: cmd.String("elephant-endpoint"), APIKeyEnv: cmd.String("elephant-key-env")}
+	validation := prune
+	validation.Enabled = false
+	if err := validation.Validate(); err != nil {
+		return cli.Exit(err.Error(), exitUsage)
+	}
+	var remote compaction.PruneClassifier
+	if model := cmd.String("openrouter-decision-model"); model != "" {
+		classifier := compaction.OpenRouterPruneClassifier(model, "OPENROUTER_API_KEY")
+		classifier.Settings.DecisionSchema = prune.DecisionSchema
+		classifier.Settings.Confidence = prune.Confidence
+		remote = classifier
+	}
+	if dir := cmd.String("pruning-prompt-dir"); dir != "" {
+		classifier, ok := remote.(compaction.Elephant)
+		if !ok {
+			return cli.Exit("prompt search requires --openrouter-decision-model", exitUsage)
+		}
+		classifier.Settings.MaxContextTokens = 14000
+		variants, err := evalrun.LoadPruningPrompts(dir)
+		if err != nil {
+			return err
+		}
+		return evalrun.PromptSearch(ctx, os.Stdout, classifier, variants, cmd.String("pruning-search-set"), cmd.Int("pruning-search-repeats"), cmd.String("pruning-search-state"))
+	}
+	if cmd.Bool("pruning-experiment") {
+		if prune.Endpoint == "" {
+			prune.Endpoint = "http://127.0.0.1:4000/v1/systemone"
+		}
+		return evalrun.PruningExperiment(ctx, os.Stdout, prune, remote, cmd.Bool("pruning-heldout"), cmd.String("pruning-experiment-set"))
+	}
 	target := cmd.Args().First()
 	if target == "" {
 		target = filepath.Join(home.Dir(), "sessions")
@@ -72,7 +116,15 @@ func compactionEvalAction(ctx context.Context, cmd *cli.Command) error {
 		defer func() { _ = closeLive() }()
 		sums.Live = live
 	}
-	rep, err := evalrun.Run(ctx, target, evalrun.Options{Summaries: sums, Strategies: evalrun.Only(evalrun.Strategies(), cmd.StringSlice("strategy")), Window: cmd.Int64("window"), Progress: os.Stderr, MaxCaseTokens: cmd.Int64("max-case-tokens")})
+	strategies := evalrun.Strategies()
+	strategies = append(strategies, evalrun.PruningStrategy("eager heuristic", prune, compaction.DuplicateClassifier{}))
+	if remote != nil {
+		strategies = append(strategies, evalrun.PruningStrategy("eager elephant (OpenRouter)", prune, remote))
+	}
+	if prune.Endpoint != "" {
+		strategies = append(strategies, evalrun.PruningStrategy("eager elephant", prune, compaction.Elephant{Settings: prune}))
+	}
+	rep, err := evalrun.Run(ctx, target, evalrun.Options{Summaries: sums, Strategies: evalrun.Only(strategies, cmd.StringSlice("strategy")), Window: cmd.Int64("window"), Progress: os.Stderr, MaxCaseTokens: cmd.Int64("max-case-tokens")})
 	if err != nil {
 		return err
 	}
